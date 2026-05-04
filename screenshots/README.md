@@ -1,5 +1,7 @@
-# Screenshots and demo
+# Carousel cover and demo media
 
-Demo screenshots and a silent screen-recorded walkthrough land here when this template gets its dedicated launch post on LinkedIn.
+This template's section in the launch carousel is reproduced here as `cover.png`.
 
-For now, see [`../README.md`](../README.md) for the architecture diagram and node-level breakdown.
+![Cover](cover.png)
+
+A silent screen-recorded walkthrough lands here when this template gets its dedicated launch post on LinkedIn. Until then, see [`../README.md`](../README.md) for the architecture diagram and node-level breakdown.

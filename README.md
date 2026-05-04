@@ -6,6 +6,8 @@
 
 > Part of the **[n8n-ai-agents catalog](https://github.com/MinaSaad1/n8n-ai-agents)** , see the catalog for shared [architecture principles](https://github.com/MinaSaad1/n8n-ai-agents/blob/main/docs/architecture-principles.md), [security framework](https://github.com/MinaSaad1/n8n-ai-agents/blob/main/docs/security-framework.md), and [output conventions](https://github.com/MinaSaad1/n8n-ai-agents/blob/main/docs/output-conventions.md) every template in the collection follows.
 
+![Cover](screenshots/cover.png)
+
 ---
 
 ## What it does
