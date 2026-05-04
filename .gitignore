@@ -1,0 +1,35 @@
+# Secrets / credentials - never commit these
+.env
+.env.*
+*.pem
+*.key
+credentials.json
+*-credentials.json
+client-secret*.txt
+
+# n8n local
+.n8n/
+
+# Editor / OS
+.vscode/
+.idea/
+*.swp
+.DS_Store
+Thumbs.db
+
+# Build artifacts
+node_modules/
+dist/
+build/
+
+# Python (for any scripts)
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Local testing / scratch
+scratch/
+tmp/
+*.local.sql
+*.local.json

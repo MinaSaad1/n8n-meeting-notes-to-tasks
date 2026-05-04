@@ -1,0 +1,349 @@
+{
+  "name": "NTF 05 - Meeting Notes to Tasks",
+  "tags": [
+    {
+      "name": "NTF-Playbook"
+    }
+  ],
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "nodes": [
+    {
+      "id": "sticky-readme",
+      "name": "README",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -60,
+        -520
+      ],
+      "parameters": {
+        "content": "## NTF 05 - Meeting Notes to Tasks\n\n**Trigger:** Webhook - POST `{ transcript: \"...\", meeting_title: \"...\", date: \"...\" }`\n\n**Flow:**\n1. Receive meeting transcript via webhook\n2. Claude extracts action items, decisions, and attendees\n3. Create a Notion page with the meeting summary\n4. Create individual Notion tasks for each action item\n5. Send Slack recap with task list\n\n**Setup:**\n- Connect Notion OAuth credential\n- Set your Notion Database ID for tasks\n- Set your Notion Database ID for meeting notes\n- Set your Slack channel ID\n- Works with any transcript format (Otter.ai, Fireflies, manual notes)",
+        "height": 360,
+        "width": 540,
+        "color": 6
+      }
+    },
+    {
+      "id": "webhook-trigger",
+      "name": "Meeting Transcript Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        0
+      ],
+      "webhookId": "meeting-notes-webhook",
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "meeting-notes",
+        "responseMode": "responseNode",
+        "options": {}
+      }
+    },
+    {
+      "id": "extract-fields",
+      "name": "Extract Meeting Fields",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        220,
+        0
+      ],
+      "parameters": {
+        "mode": "manual",
+        "assignments": {
+          "assignments": [
+            {
+              "id": "transcript",
+              "name": "transcript",
+              "value": "={{ $json.body.transcript }}",
+              "type": "string"
+            },
+            {
+              "id": "meeting_title",
+              "name": "meeting_title",
+              "value": "={{ $json.body.meeting_title || 'Meeting' }}",
+              "type": "string"
+            },
+            {
+              "id": "meeting_date",
+              "name": "meeting_date",
+              "value": "={{ $json.body.date || $now.format('YYYY-MM-DD') }}",
+              "type": "string"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "claude-llm",
+      "name": "Claude Extraction Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatAnthropic",
+      "typeVersion": 1.3,
+      "position": [
+        440,
+        0
+      ],
+      "parameters": {
+        "model": "claude-sonnet-4-5",
+        "options": {
+          "maxTokens": 2000
+        }
+      },
+      "credentials": {
+        "anthropicApi": {
+          "name": "Anthropic"
+        }
+      }
+    },
+    {
+      "id": "extract-chain",
+      "name": "Extract Actions and Decisions",
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.4,
+      "position": [
+        440,
+        0
+      ],
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are a meeting assistant. Analyze this meeting transcript and return a JSON object with:\n- summary: 2-3 sentence executive summary of what was discussed and decided\n- decisions: array of strings, key decisions made (max 5)\n- action_items: array of objects, each with { task, owner, due_date, priority }\n  - task: clear actionable description\n  - owner: person responsible (use 'Unassigned' if not clear)\n  - due_date: ISO date string if mentioned, otherwise null\n  - priority: 'high' | 'medium' | 'low'\n- attendees: array of names mentioned in the transcript\n\nMeeting: {{ $('Extract Meeting Fields').item.json.meeting_title }}\nDate: {{ $('Extract Meeting Fields').item.json.meeting_date }}\n\nTranscript:\n{{ $('Extract Meeting Fields').item.json.transcript }}\n\nReturn only valid JSON. No markdown fencing."
+      }
+    },
+    {
+      "id": "parse-meeting",
+      "name": "Parse Meeting Data",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        660,
+        0
+      ],
+      "parameters": {
+        "jsCode": "const raw = $input.first().json.text || '{}';\nlet parsed = {};\ntry {\n  parsed = JSON.parse(raw.replace(/```json|```/g, '').trim());\n} catch(e) {\n  parsed = { summary: raw, decisions: [], action_items: [], attendees: [] };\n}\nconst fields = $('Extract Meeting Fields').first().json;\nreturn [{ json: { ...parsed, ...fields } }];"
+      }
+    },
+    {
+      "id": "create-notion-summary",
+      "name": "Notion Meeting Summary Page",
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2.2,
+      "position": [
+        880,
+        -120
+      ],
+      "parameters": {
+        "operation": "create",
+        "databaseId": "YOUR_NOTION_MEETING_NOTES_DB_ID",
+        "title": "={{ $json.meeting_title }} - {{ $json.meeting_date }}",
+        "propertiesUi": {
+          "propertyValues": [
+            {
+              "key": "Date",
+              "type": "date",
+              "dateValue": "={{ $json.meeting_date }}"
+            },
+            {
+              "key": "Summary",
+              "type": "richText",
+              "textContent": "={{ $json.summary }}"
+            },
+            {
+              "key": "Attendees",
+              "type": "richText",
+              "textContent": "={{ ($json.attendees || []).join(', ') }}"
+            }
+          ]
+        }
+      },
+      "credentials": {
+        "notionApi": {
+          "name": "Notion"
+        }
+      }
+    },
+    {
+      "id": "split-tasks",
+      "name": "Split Action Items",
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        880,
+        80
+      ],
+      "parameters": {
+        "fieldToSplitOut": "action_items",
+        "options": {}
+      }
+    },
+    {
+      "id": "create-notion-tasks",
+      "name": "Notion Create Task",
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2.2,
+      "position": [
+        1100,
+        80
+      ],
+      "parameters": {
+        "operation": "create",
+        "databaseId": "YOUR_NOTION_TASKS_DB_ID",
+        "title": "={{ $json.task }}",
+        "propertiesUi": {
+          "propertyValues": [
+            {
+              "key": "Owner",
+              "type": "richText",
+              "textContent": "={{ $json.owner }}"
+            },
+            {
+              "key": "Priority",
+              "type": "select",
+              "selectValue": "={{ $json.priority }}"
+            },
+            {
+              "key": "Due Date",
+              "type": "date",
+              "dateValue": "={{ $json.due_date }}"
+            },
+            {
+              "key": "Source",
+              "type": "richText",
+              "textContent": "={{ $('Extract Meeting Fields').item.json.meeting_title }}"
+            }
+          ]
+        }
+      },
+      "credentials": {
+        "notionApi": {
+          "name": "Notion"
+        }
+      }
+    },
+    {
+      "id": "slack-recap",
+      "name": "Slack Meeting Recap",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.3,
+      "position": [
+        1100,
+        -120
+      ],
+      "parameters": {
+        "operation": "post",
+        "channel": "YOUR_SLACK_CHANNEL_ID",
+        "text": "=*Meeting Recap: {{ $('Extract Meeting Fields').item.json.meeting_title }}*\n{{ $('Extract Meeting Fields').item.json.meeting_date }}\n\n{{ $('Parse Meeting Data').item.json.summary }}\n\n*Action Items:*\n{{ ($('Parse Meeting Data').item.json.action_items || []).map(a => `- ${a.task} -> ${a.owner}`).join('\\n') }}"
+      },
+      "credentials": {
+        "slackApi": {
+          "name": "Slack"
+        }
+      }
+    },
+    {
+      "id": "webhook-response",
+      "name": "Webhook Response",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        1320,
+        0
+      ],
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ received: true, tasks_created: $('Parse Meeting Data').item.json.action_items?.length || 0 }) }}"
+      }
+    }
+  ],
+  "connections": {
+    "Meeting Transcript Webhook": {
+      "main": [
+        [
+          {
+            "node": "Extract Meeting Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Meeting Fields": {
+      "main": [
+        [
+          {
+            "node": "Extract Actions and Decisions",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Claude Extraction Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Extract Actions and Decisions",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Actions and Decisions": {
+      "main": [
+        [
+          {
+            "node": "Parse Meeting Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Meeting Data": {
+      "main": [
+        [
+          {
+            "node": "Notion Meeting Summary Page",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Split Action Items",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Slack Meeting Recap",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Action Items": {
+      "main": [
+        [
+          {
+            "node": "Notion Create Task",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Notion Meeting Summary Page": {
+      "main": [
+        [
+          {
+            "node": "Webhook Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}
