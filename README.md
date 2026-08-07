@@ -102,7 +102,7 @@ Grab both database IDs from the Notion URL (the 32-character chunk before `?v=`)
 
 | Node | Credential | Notes |
 |---|---|---|
-| `Claude Extraction Model` | Anthropic API | Set the API key. Default model is `claude-sonnet-4-5`, swap to `claude-sonnet-4-6` once your account has access. |
+| `Claude Extraction Model` | Anthropic API | Set the API key. Default model is `claude-sonnet-4-6`. |
 | `Notion Meeting Summary Page` | Notion OAuth2 (or internal integration token) | The integration must be invited to both databases. |
 | `Notion Create Task` | Same Notion credential as above | Reuse the credential, just point it at the tasks database. |
 | `Slack Meeting Recap` | Slack OAuth2 | Bot needs `chat:write`. Invite the bot to the target channel. |

@@ -46,7 +46,7 @@ Pulls the three fields off `$json.body` and assigns sensible defaults (`'Meeting
 
 ### Claude Extraction Model (`@n8n/n8n-nodes-langchain.lmChatAnthropic`)
 
-The chat model node, configured with `model: claude-sonnet-4-5` and `maxTokens: 2000`. It feeds the chainLlm node beside it via the `ai_languageModel` connection. Swap to `claude-sonnet-4-6` once your Anthropic account has access, no other changes needed.
+The chat model node, configured with `model: claude-sonnet-4-6` and `maxTokens: 2000`. It feeds the chainLlm node beside it via the `ai_languageModel` connection. Swap to `claude-sonnet-4-6` once your Anthropic account has access, no other changes needed.
 
 The model is intentionally separate from the chain node so you can change provider (OpenAI, Gemini, OpenRouter) without rewriting the prompt.
 
@@ -114,7 +114,7 @@ Six weeks from now, when someone asks "where did this task come from?", the Sour
 |---|---|
 | Webhook receipt | <100 ms |
 | Extract Meeting Fields | <50 ms |
-| Claude extraction (Sonnet 4.5/4.6, 2k token cap) | 3 to 8 seconds for typical 30-min transcripts |
+| Claude extraction (Sonnet 4.6, 2k token cap) | 3 to 8 seconds for typical 30-min transcripts |
 | Parse Meeting Data | <50 ms |
 | Notion write (per row) | 300 to 800 ms |
 | Slack post | 200 to 500 ms |

@@ -81,13 +81,18 @@
       "id": "claude-llm",
       "name": "Claude Extraction Model",
       "type": "@n8n/n8n-nodes-langchain.lmChatAnthropic",
-      "typeVersion": 1.3,
+      "typeVersion": 1.5,
       "position": [
         440,
         0
       ],
       "parameters": {
-        "model": "claude-sonnet-4-5",
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "claude-sonnet-4-6",
+          "cachedResultName": "Claude Sonnet 4.6"
+        },
         "options": {
           "maxTokens": 2000
         }
@@ -226,15 +231,21 @@
       "id": "slack-recap",
       "name": "Slack Meeting Recap",
       "type": "n8n-nodes-base.slack",
-      "typeVersion": 2.3,
+      "typeVersion": 2.5,
       "position": [
         1100,
         -120
       ],
       "parameters": {
         "operation": "post",
-        "channel": "YOUR_SLACK_CHANNEL_ID",
-        "text": "=*Meeting Recap: {{ $('Extract Meeting Fields').item.json.meeting_title }}*\n{{ $('Extract Meeting Fields').item.json.meeting_date }}\n\n{{ $('Parse Meeting Data').item.json.summary }}\n\n*Action Items:*\n{{ ($('Parse Meeting Data').item.json.action_items || []).map(a => `- ${a.task} -> ${a.owner}`).join('\\n') }}"
+        "text": "=*Meeting Recap: {{ $('Extract Meeting Fields').item.json.meeting_title }}*\n{{ $('Extract Meeting Fields').item.json.meeting_date }}\n\n{{ $('Parse Meeting Data').item.json.summary }}\n\n*Action Items:*\n{{ ($('Parse Meeting Data').item.json.action_items || []).map(a => `- ${a.task} -> ${a.owner}`).join('\\n') }}",
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "mode": "name",
+          "value": "YOUR_SLACK_CHANNEL"
+        },
+        "resource": "message"
       },
       "credentials": {
         "slackApi": {
