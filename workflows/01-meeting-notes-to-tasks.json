@@ -1,8 +1,8 @@
 {
-  "name": "NTF 05 - Meeting Notes to Tasks",
+  "name": "Meeting Notes to Tasks",
   "tags": [
     {
-      "name": "NTF-Playbook"
+      "name": "n8n-ai-agents"
     }
   ],
   "settings": {
@@ -19,7 +19,7 @@
         -520
       ],
       "parameters": {
-        "content": "## NTF 05 - Meeting Notes to Tasks\n\n**Trigger:** Webhook - POST `{ transcript: \"...\", meeting_title: \"...\", date: \"...\" }`\n\n**Flow:**\n1. Receive meeting transcript via webhook\n2. Claude extracts action items, decisions, and attendees\n3. Create a Notion page with the meeting summary\n4. Create individual Notion tasks for each action item\n5. Send Slack recap with task list\n\n**Setup:**\n- Connect Notion OAuth credential\n- Set your Notion Database ID for tasks\n- Set your Notion Database ID for meeting notes\n- Set your Slack channel ID\n- Works with any transcript format (Otter.ai, Fireflies, manual notes)",
+        "content": "## Meeting Notes to Tasks\n\n**Trigger:** Webhook - POST `{ transcript: \"...\", meeting_title: \"...\", date: \"...\" }`\n\n**Flow:**\n1. Receive meeting transcript via webhook\n2. Claude extracts action items, decisions, and attendees\n3. Create a Notion page with the meeting summary\n4. Create individual Notion tasks for each action item\n5. Send Slack recap with task list\n\n**Setup:**\n- Connect Notion OAuth credential\n- Set your Notion Database ID for tasks\n- Set your Notion Database ID for meeting notes\n- Set your Slack channel ID\n- Works with any transcript format (Otter.ai, Fireflies, manual notes)",
         "height": 360,
         "width": 540,
         "color": 6
