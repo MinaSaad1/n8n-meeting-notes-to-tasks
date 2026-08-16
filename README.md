@@ -178,3 +178,16 @@ MIT, see [LICENSE](LICENSE).
 ## Credits
 
 Built by [Mina Saad](https://github.com/MinaSaad1). Part of the [n8n-ai-agents catalog](https://github.com/MinaSaad1/n8n-ai-agents).
+
+---
+
+## Need this running in your business?
+
+This template is free and MIT, and it is meant to be forked. Getting one into
+production against your real data, your credentials and your edge cases is a
+different job, and it is the one I do.
+
+I work out what is actually costing a business, then build whatever fixes it: an
+AI agent, an automation, or a full application. Handed over so your team owns it.
+
+[Book a call](https://cal.com/minasaad/60min) · [mina-saad.com](https://www.mina-saad.com)
